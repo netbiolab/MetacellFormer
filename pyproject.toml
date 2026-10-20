@@ -13,7 +13,7 @@ dependencies = ["numpy", "scipy", "pandas", "torch", "transformers", "safetensor
 data = ["anndata"]
 evaluation = ["anndata", "scikit-learn", "threadpoolctl"]
 test = ["pytest", "anndata", "scikit-learn", "threadpoolctl"]
-training = ["datasets", "accelerate", "pyyaml"]
+training = ["datasets==2.20.0", "pyarrow==17.0.0", "accelerate", "pyyaml"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

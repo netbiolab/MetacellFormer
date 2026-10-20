@@ -22,10 +22,10 @@ This setup uses CPU PyTorch. Install a CUDA build of PyTorch for GPU inference a
 
 | Repository | Contents |
 |---|---|
-| MetacellFormer | Metacell-pretrained checkpoint, vocabulary and reference statistics |
-| MetacellFormer-SC | Matched single-cell-pretrained checkpoint and resources |
-| MetacellFormer-corpus | 818,609 metacell count profiles, source-cell memberships and fixed splits from 1,334 datasets |
-| MetacellFormer-evaluation | Inputs, cell rosters, labels and folds for six main benchmarks, Gaussian robustness and PC9 |
+| [MetacellFormer](https://huggingface.co/netbiolab/MetacellFormer) | Metacell-pretrained checkpoint, vocabulary and reference statistics |
+| [MetacellFormer-SC](https://huggingface.co/netbiolab/MetacellFormer-SC) | Matched single-cell-pretrained checkpoint and resources |
+| [MetacellFormer-corpus](https://huggingface.co/datasets/netbiolab/MetacellFormer-corpus) | 818,609 metacell count profiles, source-cell memberships and fixed splits from 1,334 datasets |
+| [MetacellFormer-evaluation](https://huggingface.co/datasets/netbiolab/MetacellFormer-evaluation) | Inputs, cell rosters, labels and folds for six main benchmarks, Gaussian robustness and PC9 |
 
 Download the required repositories and set their local paths:
 
