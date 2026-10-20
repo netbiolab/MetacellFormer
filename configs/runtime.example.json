@@ -1,0 +1,40 @@
+{
+  "MetacellFormer": {
+    "checkpoint": "models/MetacellFormer"
+  },
+  "MetacellFormer-SC": {
+    "checkpoint": "models/MetacellFormer-SC"
+  },
+  "Geneformer-V2": {
+    "checkpoint": "models/Geneformer-V2",
+    "tokenizer_version": "V2",
+    "token_dictionary": "models/official_V2_token_dictionary.pkl"
+  },
+  "Geneformer-V1": {
+    "checkpoint": "models/Geneformer-V1",
+    "tokenizer_version": "V1",
+    "token_dictionary": "models/official_V1_token_dictionary.pkl"
+  },
+  "scPRINT": {
+    "checkpoint": "models/scPRINT",
+    "code": "external/scPRINT",
+    "scdataloader_code": "external/scDataLoader",
+    "gene_info": "MetacellFormer-evaluation/contracts/protein_interaction_prediction/Homo_sapiens.gene_info.gz",
+    "transformer": "flash"
+  },
+  "scGPT": {
+    "checkpoint": "models/scGPT",
+    "fast_transformer": {
+      "cell": false,
+      "drug": false,
+      "robustness": false,
+      "pc9": true,
+      "perturbation": true
+    }
+  },
+  "CellFM": {
+    "checkpoint": "models/CellFM",
+    "code": "external/CellFM",
+    "gene_info": "external/CellFM_gene_info.csv"
+  }
+}

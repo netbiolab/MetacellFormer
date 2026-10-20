@@ -1,0 +1,9 @@
+{
+  "MetacellFormer": "mcfm_input_isolation_mc_e3_seed42",
+  "MetacellFormer-SC": "mcfm_input_isolation_sc_e3_seed42",
+  "Geneformer-V2": "geneformer_v2_104m",
+  "Geneformer-V1": "geneformer_v1",
+  "scPRINT": "scprint_medium_v1_5",
+  "scGPT": "scgpt",
+  "CellFM": "cellfm_800m_cls"
+}

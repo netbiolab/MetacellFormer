@@ -1,0 +1,216 @@
+--- a/data_utils.py
++++ b/data_utils.py
+@@ -1,3 +1,7 @@
++import os
++
++PAPER_PREPROCESSING = True
++
+ import torch
+ import numpy as np
+ import scanpy as sc
+@@ -36,42 +40,48 @@
+ 
+ 
+ def preprocess(adata, data_type):
+-    if isinstance(adata.X, sparse.csr_matrix) or isinstance(adata.X, sparse.csc_matrix):
+-        adata.X = adata.X.toarray()
+-    raw = adata.X.copy()
+-
++    import scanpy as sc
++    from scipy import sparse
++    import numpy as np
++    raw_sparse = adata.X.copy()
++    sc.pp.normalize_total(adata, target_sum=1e4)
++    s = raw_sparse.sum(axis=1) / 1e4
++    try:
++        s = s.A1
++    except AttributeError:
++        s = s.reshape(-1)
++    sf = s.reshape(-1, 1)
++    sc.pp.log1p(adata)
++    adata_ = adata.copy()
+     if data_type == "RNA":
+-        sc.pp.normalize_total(adata, target_sum=1e4)
+-        sf = np.array((raw.sum(axis=1) / 1e4).tolist()).reshape(-1, 1)
+-        sc.pp.log1p(adata)
+-        adata_ = adata.copy()
+         if adata.shape[1] < 5000:
+             sc.pp.highly_variable_genes(adata, n_top_genes=3000)
+         else:
+             sc.pp.highly_variable_genes(adata)
+-        hvg_index = adata.var["highly_variable"].values
+-        raw = raw[:, hvg_index]
+-        adata = adata[:, hvg_index]
++        hvg_idx = adata.var["highly_variable"].values
++        import re
++        patterns = [
++            r"^MT-",
++            r"^IG[HVKL]",
++            r"^RP[SL]",
++            r"^TR[AV]",
++        ]
++        exclude_mask = np.zeros(len(adata.var_names), dtype=bool)
++        for pat in patterns:
++            exclude_mask |= adata.var_names.str.contains(pat, regex=True)
++        final_idx = hvg_idx & (~exclude_mask)
++        raw = raw_sparse[:, final_idx].toarray()
++        adata = adata[:, final_idx]
+     elif data_type == "ADT":
+-        sc.pp.normalize_total(adata, target_sum=1e4)
+-        sf = np.array((raw.sum(axis=1) / 1e4).tolist()).reshape(-1, 1)
+-        sc.pp.log1p(adata)
+-        adata_ = adata.copy()
++        raw = raw_sparse.toarray()
+     elif data_type == "ATAC":
+-        sc.pp.normalize_total(adata, target_sum=1e4)
+-        sf = np.array((raw.sum(axis=1) / 1e4).tolist()).reshape(-1, 1)
+-        sc.pp.log1p(adata)
+-        adata_ = adata.copy()
+         sc.pp.highly_variable_genes(adata, n_top_genes=30000)
+-        hvg_index = adata.var["highly_variable"].values
+-        raw = raw[:, hvg_index]
+-        adata = adata[:, hvg_index]
+-
++        hvg_idx = adata.var["highly_variable"].values
++        raw = raw_sparse[:, hvg_idx].toarray()
++        adata = adata[:, hvg_idx]
+     sc.pp.scale(adata, max_value=10)
+-    x = adata.X
+-
+-    return x, sf, raw, adata_
+-
++    X = adata.X.toarray() if sparse.isspmatrix(adata.X) else adata.X
++    return X, sf, raw, adata_
+ 
+ def load_data(args):
+     print("=======Loading and Preprocessing Data=======")
+@@ -100,21 +110,27 @@
+     dataset = MetaQDataset(x_list, sf_list, raw_list)
+     if args.metacell_num > 1000 and args.batch_size <= 512:
+         args.batch_size = 4096
++    num_workers = int(os.environ.get("METAQ_NUM_WORKERS", "4"))
++    pin_memory = os.environ.get("METAQ_PIN_MEMORY", "1").lower() not in {"0", "false", "no"}
++    print(f"MetaQ DataLoader settings: num_workers={num_workers}, pin_memory={pin_memory}")
++
+     dataloader_train = DataLoader(
+         dataset=dataset,
+         batch_size=args.batch_size,
+         shuffle=True,
+         drop_last=True,
+-        num_workers=4,
+-        pin_memory=True,
++        num_workers=num_workers,
++        pin_memory=pin_memory,
+     )
+     dataloader_eval = DataLoader(
+         dataset=dataset,
+         batch_size=args.batch_size * 4,
+         shuffle=False,
+         drop_last=False,
+-        num_workers=4,
++        num_workers=num_workers,
+     )
++
++    print(f"Effective batch sizes: train={args.batch_size}, eval={args.batch_size * 4}")
+ 
+     input_dims = [x.shape[1] for x in x_list]
+ 
+--- a/main.py
++++ b/main.py
+@@ -2,25 +2,16 @@
+ 
+ warnings.filterwarnings("ignore")
+ 
+-import os
+ import torch
+ import random
+ import argparse
+-import matplotlib
+ import numpy as np
+ import scanpy as sc
+-import seaborn as sns
+ from .model import MetaQ
+-from matplotlib import rcParams
+ from alive_progress import alive_bar
+ from .engine import train_one_epoch, warm_one_epoch, inference
+-from .data_utils import load_data, compute_metacell
+-from .eval_utils import (
+-    plot_metacell_umap,
+-    plot_metacell_size,
+-    plot_celltype_purity,
+-    plot_compactness_separation,
+-)
++from .data_utils import load_data
++
+ 
+ 
+ def main(args):
+@@ -105,61 +96,18 @@
+     print("* Codebook Loss:", loss_codebook)
+     print("")
+ 
+-    if not os.path.exists("./save/"):
+-        os.makedirs("./save/")
+-
+-    for i in range(omics_num):
+-        metacell_path = (
+-            "./save/"
+-            + args.save_name
+-            + "_"
+-            + args.data_type[i]
+-            + "_"
+-            + str(args.metacell_num)
+-            + "metacell.h5ad"
+-        )
+-        adata = adata_list[i]
+-        metacell_adata = compute_metacell(adata, ids, args)
+-        metacell_adata.write_h5ad(metacell_path)
+-        print(args.data_type[i] + " metacell data saved at:", metacell_path)
+-
+-    assignment_path = (
+-        "./save/" + args.save_name + "_" + str(args.metacell_num) + "metacell_ids.h5ad"
+-    )
++    # Memberships only; raw counts are summed separately in chunks.
++    from pathlib import Path
++    save_dir = Path(args.save_name) / "save"
++    save_dir.mkdir(parents=True, exist_ok=True)
++    assignment_path = save_dir / f"{args.metacell_num}metacell_ids.h5ad"
+     adata = sc.AnnData(embeds, dtype=np.float32)
++    adata.obs_names = adata_list[0].obs_names.copy()
+     adata.obs["metacell"] = ids
+     if args.type_key in adata_list[0].obs_keys():
+-        adata.obs[args.type_key] = adata_list[0].obs[args.type_key]
+-    sc.set_figure_params(figsize=(7, 7), dpi=300)
+-    sc.pp.neighbors(adata, use_rep="X", metric="cosine")
+-    sc.tl.umap(adata)
+-    if args.type_key in adata.obs_keys():
+-        sc.pl.umap(
+-            adata,
+-            color=[args.type_key],
+-            save="_" + args.save_name + "_embedding.png",
+-            palette=sns.color_palette(
+-                "husl", np.unique(adata.obs[args.type_key].values).size
+-            ),
+-            show=False,
+-        )
+-    rcParams.update(matplotlib.rcParamsDefault)
++        adata.obs[args.type_key] = adata_list[0].obs[args.type_key].astype("category")
+     adata.write_h5ad(assignment_path)
+     print("Metacell assignment saved at:", assignment_path)
+-    print("")
+-
+-    fig_save_name = args.save_name + "_" + str(args.metacell_num) + "metacell"
+-    plot_metacell_umap(adata, fig_save_name)
+-    plot_metacell_size(adata, fig_save_name)
+-    if args.type_key in adata.obs_keys():
+-        plot_celltype_purity(adata, adata.obs[args.type_key], fig_save_name)
+-    for i in range(omics_num):
+-        plot_compactness_separation(
+-            dataloader_train.dataset.raw_list[i].numpy(),
+-            adata,
+-            fig_save_name + "_" + args.data_type[i],
+-            omics_num > 1,
+-        )
+ 
+     print("======= Inference Done =======")
+ 

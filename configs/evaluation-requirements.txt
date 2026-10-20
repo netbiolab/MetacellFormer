@@ -1,0 +1,13 @@
+# Tested CPU installation: Python 3.11. Install CPU torch first (README).
+numpy==1.26.4
+scipy==1.14.1
+pandas==2.2.2
+scikit-learn==1.5.1
+anndata==0.10.8
+scanpy==1.10.2
+umap-learn==0.5.6
+threadpoolctl>=3.1
+torch==2.4.0
+transformers==4.44.2
+safetensors==0.4.4
+pytest==8.3.5

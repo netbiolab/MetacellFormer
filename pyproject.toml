@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metacellformer"
+version = "0.1.0"
+description = "MetacellFormer model inference and paper analysis tools"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "pandas", "torch", "transformers", "safetensors"]
+
+[project.optional-dependencies]
+data = ["anndata"]
+evaluation = ["anndata", "scikit-learn", "threadpoolctl"]
+test = ["pytest", "anndata", "scikit-learn", "threadpoolctl"]
+training = ["datasets", "accelerate", "pyyaml"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
