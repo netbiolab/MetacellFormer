@@ -43,10 +43,10 @@ Start Jupyter from this repository root. Each notebook writes to `example_output
 | Notebook | Environment | Example |
 |---|---|---|
 | [01_metaq.ipynb](examples/01_metaq.ipynb) | MetaQ-env | Group 100 K562 cells and aggregate raw counts |
-| [02_embeddings.ipynb](examples/02_embeddings.ipynb) | MetacellFormer-env | Extract embeddings for 64 fixed DC cells |
-| [03_evaluation.ipynb](examples/03_evaluation.ipynb) | MetacellFormer-env | Score DC annotation and one Gaussian noise condition |
+| [02_embeddings.ipynb](examples/02_embeddings.ipynb) | MetacellFormer-env | Extract embeddings for 96 fixed human PBMC_368K cells |
+| [03_evaluation.ipynb](examples/03_evaluation.ipynb) | MetacellFormer-env | Score PBMC_368K annotation and one Gaussian noise condition |
 
-Run notebooks 02 and 03 in order. DC uses the archived benchmark matrix described as TPM by its source. To register a notebook kernel, activate its environment and run:
+Run notebooks 02 and 03 in order. To register a notebook kernel, activate its environment and run:
 
 ```bash
 python -m pip install ipykernel
