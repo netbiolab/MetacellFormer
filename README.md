@@ -27,7 +27,7 @@ This setup uses CPU PyTorch. Install a CUDA build of PyTorch for GPU inference a
 | [MetacellFormer-corpus](https://huggingface.co/datasets/netbiolab/MetacellFormer-corpus) | 818,609 metacell count profiles, source-cell memberships and fixed splits from 1,334 datasets |
 | [MetacellFormer-evaluation](https://huggingface.co/datasets/netbiolab/MetacellFormer-evaluation) | Inputs, cell rosters, labels and folds for six main benchmarks, Gaussian robustness and PC9 |
 
-Download the required repositories and set their local paths:
+Download the files required by your notebook and set their local paths:
 
 ```bash
 export METACELLFORMER_EVALUATION=/path/to/MetacellFormer-evaluation
@@ -45,8 +45,11 @@ Start Jupyter from this repository root. Each notebook writes to `example_output
 | [01_metaq.ipynb](examples/01_metaq.ipynb) | MetaQ-env | Group 100 K562 cells and aggregate raw counts |
 | [02_embeddings.ipynb](examples/02_embeddings.ipynb) | MetacellFormer-env | Extract embeddings for 96 fixed human PBMC_368K cells |
 | [03_evaluation.ipynb](examples/03_evaluation.ipynb) | MetacellFormer-env | Score PBMC_368K annotation and one Gaussian noise condition |
+| [04_perturbation_retrieval.ipynb](examples/04_perturbation_retrieval.ipynb) | MetacellFormer-env | Retrieve K562 perturbation states and functional groups |
 
-Run notebooks 02 and 03 in order. To register a notebook kernel, activate its environment and run:
+Each notebook lists its minimal downloads, runtime, output files and completion checks, and includes a small executed result. To use the pretrained model, start at notebook 02 without installing MetaQ. Run notebook 03 after 02; notebook 04 is independent.
+
+Cell-based downstream examples feed individual single cells to the encoder. Notebook 04 aggregates cell embeddings by perturbation and batch after inference. To register a notebook kernel, activate its environment and run:
 
 ```bash
 python -m pip install ipykernel
