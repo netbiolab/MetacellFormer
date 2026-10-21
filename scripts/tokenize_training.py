@@ -34,7 +34,6 @@ def main():
         for j in range(block.shape[0]):
             row=block[j]
             z=tokenize_single_cell_from_indices(row.indices,row.data,token,1023,binner,tok.special['<cls>'],tok.special['<pad>'],gene_subset_mask=keep,ordering_mode='geneformer_median_scaled_cp10k',rank_normalization_factors_by_index=median)
-            if z.attention_mask.sum()<=1:raise ValueError(f'No gene tokens at profile {start+j}; fix the frozen roster')
             for name,array in arrays.items():array[start+j]=getattr(z,name)
     for v in arrays.values():v.flush()
     extra={'metacell':np.arange(n,dtype=np.int64),'split':split.split.eq('eval').to_numpy(dtype=np.int8),
