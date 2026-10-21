@@ -23,9 +23,14 @@ def main():
         work = Path(temporary)
         rng = np.random.default_rng(1)
         counts = sparse.csr_matrix(rng.poisson(1, size=(100, 64)).astype(np.float32))
-        ad.AnnData(counts,
-                   obs=pd.DataFrame(index=[f"cell_{i}" for i in range(100)]),
-                   var=pd.DataFrame(index=[f"gene_{i}" for i in range(64)])).write_h5ad(work / "small_counts.h5ad")
+        gene_names = ["MT-CO1", "IGHV1", "RPL1", "TRAV1"] + [f"gene_{i}" for i in range(60)]
+        cells = ad.AnnData(counts,
+                          obs=pd.DataFrame(index=[f"cell_{i}" for i in range(100)]),
+                          var=pd.DataFrame(index=gene_names))
+        from MetaQ_sc.data_utils import preprocess
+        selected, _, raw_selected, _ = preprocess(cells.copy(), "RNA")
+        assert selected.shape == raw_selected.shape == counts.shape
+        cells.write_h5ad(work / "small_counts.h5ad")
         def run(*args):
             subprocess.run([sys.executable, *map(str, args)], cwd=work, env=env, check=True)
         run(root / "scripts/prepare_metaq.py", "--input", "small_counts.h5ad",

@@ -8,7 +8,7 @@
  import torch
  import numpy as np
  import scanpy as sc
-@@ -36,42 +40,48 @@
+@@ -36,42 +40,37 @@
  
  
  def preprocess(adata, data_type):
@@ -42,19 +42,8 @@
 -        raw = raw[:, hvg_index]
 -        adata = adata[:, hvg_index]
 +        hvg_idx = adata.var["highly_variable"].values
-+        import re
-+        patterns = [
-+            r"^MT-",
-+            r"^IG[HVKL]",
-+            r"^RP[SL]",
-+            r"^TR[AV]",
-+        ]
-+        exclude_mask = np.zeros(len(adata.var_names), dtype=bool)
-+        for pat in patterns:
-+            exclude_mask |= adata.var_names.str.contains(pat, regex=True)
-+        final_idx = hvg_idx & (~exclude_mask)
-+        raw = raw_sparse[:, final_idx].toarray()
-+        adata = adata[:, final_idx]
++        raw = raw_sparse[:, hvg_idx].toarray()
++        adata = adata[:, hvg_idx]
      elif data_type == "ADT":
 -        sc.pp.normalize_total(adata, target_sum=1e4)
 -        sf = np.array((raw.sum(axis=1) / 1e4).tolist()).reshape(-1, 1)
