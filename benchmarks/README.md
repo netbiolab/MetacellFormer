@@ -28,7 +28,7 @@ python -m benchmarks.embeddings.extract_embeddings --input counts.h5ad --output 
 python -m benchmarks.embeddings.extract_gene_embeddings --config runtime.json --model MetacellFormer --gene-info "$DATA/contracts/protein_interaction_prediction/Homo_sapiens.gene_info.gz" --output genes.npz
 ```
 
-Choose the actual task (`cell`, `drug`, `robustness`, `pc9`, `perturbation`). Geneformer PC9/perturbation uses official `EmbExtractor(emb_layer=-1)`; clean cell/Gaussian uses the native final encoder layer. scPRINT also requires the recorded `--sampling-key`; use `cell/DATASET` for every Gaussian condition so sampling identity stays fixed. Do not infer seeds from display names.
+Choose the actual task (`cell`, `drug`, `robustness`, `pc9`, `perturbation`). Geneformer Gaussian/PC9/perturbation uses official `EmbExtractor(emb_layer=-1)` (penultimate layer); Gaussian runs in float32. Standard cell annotation uses the native final encoder layer. scPRINT also requires the recorded `--sampling-key`; use `cell/DATASET` for every Gaussian condition so sampling identity stays fixed. Do not infer seeds from display names.
 
 ## Six main tasks
 
@@ -50,7 +50,7 @@ python -m benchmarks.embeddings.extract_embeddings --input noise/DC/train_clean.
 python -m benchmarks.tasks.robustness score --roster "$DATA/contracts/cell_type_annotation/DC_roster.json" --embedding-dir embeddings/DC --model MetacellFormer --dataset DC --output-dir results/robustness/DC
 ```
 
-Before `score`, encode `clean.h5ad` and every `gaussian_R_sSEED.h5ad` using matching output stems. Repeat for the nine dataset rosters and seven models. Ratios are 0.1, 0.5, 0.8, 1; draw seeds are 42–46; probe seeds are 1–3. Noise variance is `ratio × clean-test gene variance` (population variance, including zeros). Negative values are clipped; counts are neither rounded nor renormalized. The scaler and classifier fit clean training data once per probe and are reused for every noisy condition. Failed embeddings count as abstentions. Retention divides by that probe's matched clean score.
+Before `score`, encode `clean.h5ad` and every `gaussian_R_sSEED.h5ad` using matching output stems. Repeat for the nine dataset rosters and six main models; include MetacellFormer-SC for the Fig. 3 comparison. Aggregate Fig. 5b,c with `python -m benchmarks.analysis.aggregate_additional_analyses --root results --figure5-gaussian`. Ratios are 0.1, 0.5, 0.8, 1; draw seeds are 42–46; probe seeds are 1–3. Noise variance is `ratio × clean-test gene variance` (population variance, including zeros). Negative values are clipped; counts are neither rounded nor renormalized. The scaler and classifier fit clean training data once per probe and are reused for every noisy condition. Failed embeddings count as abstentions. Retention divides by that probe's matched clean score.
 
 ## PC9 external evaluation
 

@@ -97,8 +97,12 @@ def geneformer(a,config,device,batch,task,mapping,work):
     tok.tokenize_data(source,work,'input',file_format='h5ad')
     ds=load_from_disk(str(work/'input.dataset'));expected=a.obs_names.astype(str).to_numpy()
     if set(ds['cell_id'])!=set(expected) or len(ds)!=len(expected):raise ValueError('Geneformer changed the cell roster')
-    if task in ('pc9','perturbation'):
+    if task in ('pc9','perturbation','robustness'):
         if not device.startswith('cuda'):raise ValueError('The official Geneformer extractor requires CUDA')
+        if task=='robustness':
+            torch.set_default_dtype(torch.float32)
+            torch.backends.cuda.matmul.allow_tf32=False
+            torch.backends.cudnn.allow_tf32=False
         ex=EmbExtractor(model_type='Pretrained',emb_mode='cell',max_ncells=None,emb_layer=-1,
                         emb_label=['cell_id'],forward_batch_size=batch,nproc=2,model_version=version,**kwargs)
         result=pd.DataFrame(ex.extract_embs(model_directory=config['checkpoint'],input_data_file=str(work/'input.dataset'),
