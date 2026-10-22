@@ -4,7 +4,7 @@ Run from the repository root. `DATA` is the downloaded evaluation dataset; `MODE
 
 | Directory | Purpose |
 |---|---|
-| `embeddings/` | Native cell and gene embedding extraction; shared scPRINT adapter |
+| `embeddings/` | Native cell and gene embedding extraction |
 | `tasks/` | Benchmark scoring, robustness and PC9 evaluation |
 | `analysis/` | Result summaries and additional figure calculations |
 | `shared/` | Internal input/output, classifier and retrieval helpers; not run directly |
@@ -19,16 +19,17 @@ Run from the repository root. `DATA` is the downloaded evaluation dataset; `MODE
 | Static gene embeddings | NPZ: string `genes` (symbols), float32 `embedding` |
 | Metadata | Tab-separated; IDs must match embeddings exactly |
 
-Count inputs retain all measured genes. Provide `var.human_ensembl_gene` or `var.ensembl_id` for rank models and `var.gene_symbol` for symbol models. Resolve ambiguous mappings using the recorded snapshots. The encoder command strips phenotype metadata. The CellFM/scGPT input path sums repeated gene symbols.
+Count inputs retain all measured genes. Provide `var.human_ensembl_gene` or `var.ensembl_id` for rank models and `var.gene_symbol` for symbol models.
 
-The evaluation repository's `input_manifest.tsv` lists included matrices and external-only inputs. Released cell-annotation files have frozen `var.metacellformer_gene_id` and `var.geneformer_ensembl_id` mappings, which the native adapters use directly. MetacellFormer retains historical alias features separately; Geneformer selects its original mapped feature subset. Prepare Gaussian inputs before model-specific feature selection. DC's upstream benchmark describes the archived input as TPM.
+The evaluation repository's `input_manifest.tsv` lists included matrices and external-only inputs. Released cell-annotation files have frozen `var.metacellformer_gene_id` and `var.geneformer_ensembl_id` mappings, which the native adapters use directly. 
+Prepare Gaussian inputs before model-specific feature selection.
 
 ```bash
 python -m benchmarks.embeddings.extract_embeddings --input counts.h5ad --output embeddings.npz --config runtime.json --model MetacellFormer --task cell --device cuda:0
 python -m benchmarks.embeddings.extract_gene_embeddings --config runtime.json --model MetacellFormer --gene-info "$DATA/contracts/protein_interaction_prediction/Homo_sapiens.gene_info.gz" --output genes.npz
 ```
 
-Choose the actual task (`cell`, `drug`, `robustness`, `pc9`, `perturbation`). Geneformer Gaussian/PC9/perturbation uses official `EmbExtractor(emb_layer=-1)` (penultimate layer); Gaussian runs in float32. Standard cell annotation uses the native final encoder layer. scPRINT also requires the recorded `--sampling-key`; use `cell/DATASET` for every Gaussian condition so sampling identity stays fixed. Do not infer seeds from display names.
+Choose the actual task (`cell`, `drug`, `robustness`, `pc9`, `perturbation`).
 
 ## Six main tasks
 
@@ -63,7 +64,7 @@ The released study-specific H5AD files are the post-QC historical inputs. Repeat
 
 For source-level reconstruction, `scripts/prepare_pc9.py` accepts GEO files for GSM9125465–GSM9125466 (ZIP matrices), GSM8635332–GSM8635336 (`*_lRNA_*.gz`), and GSM5857972–GSM5857973 (`*_PC9_WT_*_counts_matrix.csv.gz`). This helper creates a combined gene union; align each study back to its released feature axis before native inference. The published study-specific files avoid that extra step.
 
-Prepare and encode the 2,393 GSE149214 training cells from authorized scDrugMap inputs, aligned to `train_cells.tsv.gz`; encode external cells with `--task pc9`. The two-hidden-layer MLP uses 512 units per layer, two logits, BCE, AdamW, ten epochs and seeds 1–3. No scaler, PCA or external tuning is used. AP ranks the raw positive-class logit. GSE282074 controls occur in both drug comparisons. CellFM inference uses the official MindSpore encoder and its native input preparation. Preserve study-specific extraction settings before joining outputs in roster order.
+Prepare and encode the 2,393 GSE149214 training cells from authorized scDrugMap inputs, aligned to `train_cells.tsv.gz`; encode external cells with `--task pc9`. The two-hidden-layer MLP uses 512 units per layer, two logits, BCE, AdamW, ten epochs and seeds 1–3. No scaler, PCA or external tuning is used. AP ranks the raw positive-class logit. GSE282074 controls occur in both drug comparisons. Preserve study-specific extraction settings before joining outputs in roster order.
 
 ## Paper analysis code
 
