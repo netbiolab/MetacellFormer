@@ -29,7 +29,7 @@ python -m benchmarks.embeddings.extract_embeddings --input counts.h5ad --output 
 python -m benchmarks.embeddings.extract_gene_embeddings --config runtime.json --model MetacellFormer --gene-info "$DATA/contracts/protein_interaction_prediction/Homo_sapiens.gene_info.gz" --output genes.npz
 ```
 
-Choose the actual task (`cell`, `drug`, `robustness`, `pc9`, `perturbation`).
+Choose the actual task (`cell`, `drug`, `robustness`, `pc9`, `perturbation`). Geneformer-V1/V2 use the official `EmbExtractor(emb_layer=-1)` for every task and require CUDA; Gaussian extraction runs in float32. scPRINT requires `--sampling-key`; use `cell/DATASET` for every Gaussian condition and the recorded job key for other tasks.
 
 ## Six main tasks
 

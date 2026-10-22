@@ -88,7 +88,6 @@ def geneformer(a,config,device,batch,task,mapping,work):
     import torch
     from geneformer import TranscriptomeTokenizer,EmbExtractor
     from datasets import load_from_disk
-    from transformers import BertForMaskedLM
     a=mapped_geneformer(a,mapping);a.obs['cell_id']=a.obs_names.astype(str)
     source=work/'input';source.mkdir(parents=True);a.write_h5ad(source/'input.h5ad')
     version=config['tokenizer_version'];kwargs={}
@@ -97,33 +96,16 @@ def geneformer(a,config,device,batch,task,mapping,work):
     tok.tokenize_data(source,work,'input',file_format='h5ad')
     ds=load_from_disk(str(work/'input.dataset'));expected=a.obs_names.astype(str).to_numpy()
     if set(ds['cell_id'])!=set(expected) or len(ds)!=len(expected):raise ValueError('Geneformer changed the cell roster')
-    if task in ('pc9','perturbation','robustness'):
-        if not device.startswith('cuda'):raise ValueError('The official Geneformer extractor requires CUDA')
-        if task=='robustness':
-            torch.set_default_dtype(torch.float32)
-            torch.backends.cuda.matmul.allow_tf32=False
-            torch.backends.cudnn.allow_tf32=False
-        ex=EmbExtractor(model_type='Pretrained',emb_mode='cell',max_ncells=None,emb_layer=-1,
-                        emb_label=['cell_id'],forward_batch_size=batch,nproc=2,model_version=version,**kwargs)
-        result=pd.DataFrame(ex.extract_embs(model_directory=config['checkpoint'],input_data_file=str(work/'input.dataset'),
-                          output_directory=str(work),output_prefix='native',output_torch_embs=False))
-        values=result.set_index('cell_id').loc[expected].to_numpy(dtype=np.float32)
-        return values,np.ones(len(a),bool)
-    full=BertForMaskedLM.from_pretrained(config['checkpoint'],local_files_only=True,attn_implementation='sdpa',torch_dtype=torch.float32)
-    encoder=full.bert.to(device).eval()
-    if version=='V2':encoder.half()
-    values=np.zeros((len(a),encoder.config.hidden_size),np.float32);positions={s:i for i,s in enumerate(expected)}
-    for start in range(0,len(ds),batch):
-        part=ds[start:start+batch];seqs=part['input_ids'];lengths=torch.tensor([len(s) for s in seqs],device=device)
-        width=int(lengths.max());tokens=torch.zeros((len(seqs),width),dtype=torch.long,device=device)
-        for i,seq in enumerate(seqs):tokens[i,:len(seq)]=torch.tensor(seq,device=device)
-        pos=torch.arange(width,device=device)[None,:];attention=pos<lengths[:,None]
-        with torch.inference_mode():
-            hidden=encoder(input_ids=tokens,attention_mask=attention).last_hidden_state
-            mask=attention if version=='V1' else (pos>0)&(pos<lengths[:,None]-1)
-            if (mask.sum(1)==0).any():raise ValueError('No retained Geneformer gene tokens')
-            pooled=(hidden.float()*mask[:,:,None]).sum(1)/mask.sum(1)[:,None]
-        for cell,vector in zip(part['cell_id'],pooled.cpu().numpy()):values[positions[str(cell)]]=vector
+    if not device.startswith('cuda'):raise ValueError('The official Geneformer extractor requires CUDA')
+    if task=='robustness':
+        torch.set_default_dtype(torch.float32)
+        torch.backends.cuda.matmul.allow_tf32=False
+        torch.backends.cudnn.allow_tf32=False
+    ex=EmbExtractor(model_type='Pretrained',emb_mode='cell',max_ncells=None,emb_layer=-1,
+                    emb_label=['cell_id'],forward_batch_size=batch,nproc=2,model_version=version,**kwargs)
+    result=pd.DataFrame(ex.extract_embs(model_directory=config['checkpoint'],input_data_file=str(work/'input.dataset'),
+                      output_directory=str(work),output_prefix='native',output_torch_embs=False))
+    values=result.set_index('cell_id').loc[expected].to_numpy(dtype=np.float32)
     return values,np.ones(len(a),bool)
 
 
