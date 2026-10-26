@@ -111,4 +111,4 @@ Aggregation sums raw counts across all measured genes. Use `--counts-layer` when
 
 ## License
 
-Code: [MIT](LICENSE). Model weights: CC BY 4.0. Datasets and upstream model code retain their source terms.
+Code: [Apache License 2.0](LICENSE). The MetaQ patch retains its [MIT notice](patches/MetaQ-LICENSE.txt). Model weights: CC BY 4.0. Datasets and upstream model code retain their source terms.
