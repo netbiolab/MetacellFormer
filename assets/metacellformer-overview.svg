@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="274" viewBox="0 0 1200 274" role="img" aria-labelledby="title desc">
+  <title id="title">MetacellFormer overview</title>
+  <desc id="desc">Transcriptionally similar cells are grouped and their raw gene counts are summed to construct metacells. MetacellFormer learns gene and cell representations through metacell pretraining. Applications include gene-function analysis, cell-state analysis and perturbation retrieval. Cell-based downstream tasks encode individual single cells with the pretrained model.</desc>
+  <style>
+    .panel { fill: #f6f8fa; }
+    .accent { fill: #ab6460; }
+    text { font-family: Arial, Helvetica, sans-serif; }
+    .label { fill: #667180; font-size: 17px; }
+    .heading { fill: #1f2328; font-size: 24px; font-weight: 500; }
+    .detail { fill: #59636e; font-size: 20px; }
+    .note { fill: #59636e; font-size: 20px; }
+    @media (prefers-color-scheme: dark) {
+      .panel { fill: #161b22; }
+      .accent { fill: #d9938c; }
+      .label, .detail, .note { fill: #a5aebc; }
+      .heading { fill: #e6edf3; }
+    }
+  </style>
+  <g transform="translate(0 0)">
+    <rect class="panel" width="288" height="210"/>
+    <rect class="accent" width="288" height="3"/>
+    <text class="label" x="20" y="48">INPUT</text>
+    <text class="heading" x="20" y="91">Single-cell profiles</text>
+    <text class="detail" x="20" y="132">Raw gene expression</text>
+    <text class="detail" x="20" y="162">counts</text>
+  </g>
+  <g transform="translate(304 0)">
+    <rect class="panel" width="288" height="210"/>
+    <rect class="accent" width="288" height="3"/>
+    <text class="label" x="20" y="48">AGGREGATION</text>
+    <text class="heading" x="20" y="91">Metacells</text>
+    <text class="detail" x="20" y="132">Group similar cells</text>
+    <text class="detail" x="20" y="162">Sum raw counts</text>
+  </g>
+  <g transform="translate(608 0)">
+    <rect class="panel" width="288" height="210"/>
+    <rect class="accent" width="288" height="3"/>
+    <text class="label" x="20" y="48">PRETRAINING</text>
+    <text class="heading" x="20" y="91">MetacellFormer</text>
+    <text class="detail" x="20" y="132">Learn gene and cell</text>
+    <text class="detail" x="20" y="162">representations</text>
+  </g>
+  <g transform="translate(912 0)">
+    <rect class="panel" width="288" height="210"/>
+    <rect class="accent" width="288" height="3"/>
+    <text class="label" x="20" y="48">APPLICATION</text>
+    <text class="heading" x="20" y="91">Downstream analysis</text>
+    <text class="detail" x="20" y="132">Gene function · cell states</text>
+    <text class="detail" x="20" y="162">Perturbation retrieval</text>
+  </g>
+  <text class="note" x="0" y="254">For cell-based downstream tasks, encode individual single cells with the pretrained model.</text>
+</svg>
